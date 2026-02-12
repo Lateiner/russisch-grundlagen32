@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lückentext: В oder НА?</title>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --select-border: #ccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* Liste der Sätze */
+        .sentence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sentence-card {
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column; /* Mobil-First: Untereinander */
+            transition: transform 0.2s;
+        }
+
+        .sentence-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .rus-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .de-text {
+            color: #777;
+            font-size: 0.95rem;
+            font-style: italic;
+        }
+
+        /* Das Dropdown Menu */
+        select.gap-select {
+            appearance: none;
+            background-color: #fff;
+            border: 2px solid var(--select-border);
+            border-radius: 6px;
+            padding: 5px 30px 5px 10px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: bold;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px auto;
+            min-width: 70px;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        select.gap-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Feedback Styles */
+        select.gap-select.correct {
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        select.gap-select.incorrect {
+            border-color: var(--error-color);
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: opacity 0.2s;
+            flex: 1;
+            min-width: 140px;
+            max-width: 250px;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-reset { background-color: #607D8B; }
+        .btn-solve { background-color: #FF9800; color: #333; }
+
+        .feedback-msg {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+
+        /* Responsive Breakpoints */
+        @media (min-width: 600px) {
+            .sentence-card {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .de-text {
+                text-align: right;
+                max-width: 40%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Lückentext: В oder НА?</h1>
+    
+    <div class="intro">
+        <p>Wählen Sie die richtige Präposition. Das Feedback erscheint sofort.</p>
+    </div>
+
+    <div class="sentence-list" id="quiz-form">
+        
+        <!-- Satz 1 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                1. Антон идет 
+                <select class="gap-select" data-correct="в" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                школу.
+            </div>
+            <div class="de-text">Anton geht in die Schule.</div>
+        </div>
+
+        <!-- Satz 2 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                2. Мы едем 
+                <select class="gap-select" data-correct="на" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                работу.
+            </div>
+            <div class="de-text">Wir fahren zur Arbeit.</div>
+        </div>
+
+        <!-- Satz 3 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                3. Туристы идут 
+                <select class="gap-select" data-correct="в" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                музей.
+            </div>
+            <div class="de-text">Die Touristen gehen ins Museum.</div>
+        </div>
+
+        <!-- Satz 4 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                4. Я иду 
+                <select class="gap-select" data-correct="на" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                стадион.
+            </div>
+            <div class="de-text">Ich gehe ins Stadion.</div>
+        </div>
+
+        <!-- Satz 5 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                5. Они едут 
+                <select class="gap-select" data-correct="в" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                Россию.
+            </div>
+            <div class="de-text">Sie fahren nach Russland.</div>
+        </div>
+
+        <!-- Satz 6 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                6. Студенты идут 
+                <select class="gap-select" data-correct="в" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                университет.
+            </div>
+            <div class="de-text">Die Studenten gehen in die Uni.</div>
+        </div>
+
+        <!-- Satz 7 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                7. Мама идет 
+                <select class="gap-select" data-correct="на" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                почту.
+            </div>
+            <div class="de-text">Mama geht zur Post.</div>
+        </div>
+
+        <!-- Satz 8 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                8. Мы идем 
+                <select class="gap-select" data-correct="на" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                выставку.
+            </div>
+            <div class="de-text">Wir gehen zur Ausstellung.</div>
+        </div>
+
+        <!-- Satz 9 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                9. Кот идет 
+                <select class="gap-select" data-correct="в" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                комнату.
+            </div>
+            <div class="de-text">Der Kater geht ins Zimmer.</div>
+        </div>
+
+        <!-- Satz 10 -->
+        <div class="sentence-card">
+            <div class="rus-text">
+                10. Папа едет 
+                <select class="gap-select" data-correct="на" onchange="checkSingleAnswer(this)">
+                    <option value="">...</option>
+                    <option value="в">в</option>
+                    <option value="на">на</option>
+                </select>
+                завод.
+            </div>
+            <div class="de-text">Papa fährt ins Werk.</div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetTask()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Neue Funktion für sofortiges Feedback
+    function checkSingleAnswer(selectElement) {
+        const userAnswer = selectElement.value;
+        const correctAnswer = selectElement.dataset.correct;
+
+        // Klassen entfernen
+        selectElement.classList.remove('correct', 'incorrect');
+
+        if (userAnswer === "") {
+            // Wenn leer, nichts tun
+            return;
+        }
+
+        if (userAnswer === correctAnswer) {
+            selectElement.classList.add('correct');
+        } else {
+            selectElement.classList.add('incorrect');
+        }
+    }
+
+    function resetTask() {
+        const selects = document.querySelectorAll('.gap-select');
+        selects.forEach(select => {
+            select.value = "";
+            select.classList.remove('correct', 'incorrect');
+        });
+    }
+
+    function showSolution() {
+        const selects = document.querySelectorAll('.gap-select');
+        selects.forEach(select => {
+            select.value = select.dataset.correct;
+            select.classList.remove('incorrect');
+            select.classList.add('correct');
+        });
+    }
+</script>
+
+</body>
+</html>
