@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Finde den Fehler (10 Sätze)</title>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --highlight-color: #ffeb3b;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--error-color);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Karte für jeden Satz */
+        .error-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .sentence-display {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            cursor: pointer;
+            line-height: 2;
+        }
+
+        /* Die anklickbaren Wörter */
+        .word {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+            margin: 0 2px;
+        }
+
+        .word:hover {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+        }
+
+        /* Status-Klassen für Wörter */
+        .word.selected-wrong {
+            background-color: var(--error-color); /* Rot markiert als Fehler */
+            color: white;
+            text-decoration: line-through;
+        }
+
+        .word.clicked-not-error {
+            animation: shake 0.4s;
+            background-color: #eee;
+        }
+
+        /* Korrektur-Bereich (initial versteckt) */
+        .correction-area {
+            display: none; /* Wird sichtbar, wenn Fehler gefunden */
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #ccc;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .correction-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .correction-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-option {
+            padding: 8px 16px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .btn-option:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Status für Optionen */
+        .btn-option.correct {
+            background-color: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        .btn-option.incorrect {
+            background-color: var(--error-color);
+            color: white;
+            border-color: var(--error-color);
+            opacity: 0.5;
+        }
+
+        /* Wenn Aufgabe gelöst ist */
+        .error-card.solved {
+            border-left: 5px solid var(--success-color);
+        }
+        
+        .error-card.solved .correction-area {
+            display: block; /* Lösung bleibt sichtbar */
+        }
+        
+        /* Das korrigierte Wort im Satz anzeigen */
+        .correction-result {
+            color: var(--success-color);
+            font-weight: bold;
+            margin-left: 10px;
+            display: none;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 40px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+
+        .btn-reset { background-color: #607D8B; }
+        .btn-solve { background-color: #FF9800; }
+
+        /* Animationen */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Anpassung */
+        @media (max-width: 600px) {
+            .sentence-display { font-size: 1.2rem; }
+            .correction-options { flex-direction: column; }
+            .btn-option { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Finde den Fehler</h1>
+    
+    <div class="intro">
+        <p>1. Klicken Sie im Satz auf das <strong>falsche Wort</strong>.<br>
+           2. Wählen Sie danach die <strong>richtige Korrektur</strong> aus.</p>
+    </div>
+
+    <div class="task-list">
+
+        <!-- Satz 1 -->
+        <div class="error-card" id="card-1">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Я</span>
+                <span class="word" onclick="clickWord(this, false)">иду</span>
+                <span class="word" onclick="clickWord(this, false)">в</span>
+                <span class="word error-target" onclick="clickWord(this, true)">школа</span>.
+                <span class="correction-result" id="res-1"></span>
+            </div>
+            <div class="correction-area" id="area-1">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(1, this, false)">школа</button>
+                    <button class="btn-option" onclick="selectCorrection(1, this, true)">школу</button>
+                    <button class="btn-option" onclick="selectCorrection(1, this, false)">школе</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 2 -->
+        <div class="error-card" id="card-2">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Мы</span>
+                <span class="word" onclick="clickWord(this, false)">едем</span>
+                <span class="word" onclick="clickWord(this, false)">на</span>
+                <span class="word error-target" onclick="clickWord(this, true)">работа</span>.
+                <span class="correction-result" id="res-2"></span>
+            </div>
+            <div class="correction-area" id="area-2">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(2, this, false)">работе</button>
+                    <button class="btn-option" onclick="selectCorrection(2, this, false)">работа</button>
+                    <button class="btn-option" onclick="selectCorrection(2, this, true)">работу</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 3 -->
+        <div class="error-card" id="card-3">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Туристы</span>
+                <span class="word" onclick="clickWord(this, false)">идут</span>
+                <span class="word" onclick="clickWord(this, false)">в</span>
+                <span class="word error-target" onclick="clickWord(this, true)">музея</span>.
+                <span class="correction-result" id="res-3"></span>
+            </div>
+            <div class="correction-area" id="area-3">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(3, this, true)">музей</button>
+                    <button class="btn-option" onclick="selectCorrection(3, this, false)">музею</button>
+                    <button class="btn-option" onclick="selectCorrection(3, this, false)">музея</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 4 -->
+        <div class="error-card" id="card-4">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Она</span>
+                <span class="word" onclick="clickWord(this, false)">едет</span>
+                <span class="word" onclick="clickWord(this, false)">в</span>
+                <span class="word error-target" onclick="clickWord(this, true)">деревня</span>.
+                <span class="correction-result" id="res-4"></span>
+            </div>
+            <div class="correction-area" id="area-4">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(4, this, false)">деревня</button>
+                    <button class="btn-option" onclick="selectCorrection(4, this, false)">деревне</button>
+                    <button class="btn-option" onclick="selectCorrection(4, this, true)">деревню</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 5 -->
+        <div class="error-card" id="card-5">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Папа</span>
+                <span class="word" onclick="clickWord(this, false)">ставит</span>
+                <span class="word" onclick="clickWord(this, false)">вазу</span>
+                <span class="word" onclick="clickWord(this, false)">на</span>
+                <span class="word error-target" onclick="clickWord(this, true)">окна</span>.
+                <span class="correction-result" id="res-5"></span>
+            </div>
+            <div class="correction-area" id="area-5">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(5, this, true)">окно</button>
+                    <button class="btn-option" onclick="selectCorrection(5, this, false)">окну</button>
+                    <button class="btn-option" onclick="selectCorrection(5, this, false)">окна</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 6: Werk (Männlich, unbelebt -> Akk = Nom) -->
+        <div class="error-card" id="card-6">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Антон</span>
+                <span class="word" onclick="clickWord(this, false)">едет</span>
+                <span class="word" onclick="clickWord(this, false)">на</span>
+                <span class="word error-target" onclick="clickWord(this, true)">заводе</span>.
+                <span class="correction-result" id="res-6"></span>
+            </div>
+            <div class="correction-area" id="area-6">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(6, this, false)">завода</button>
+                    <button class="btn-option" onclick="selectCorrection(6, this, true)">завод</button>
+                    <button class="btn-option" onclick="selectCorrection(6, this, false)">заводе</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 7: Ausstellung (Weiblich -a -> -u) -->
+        <div class="error-card" id="card-7">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Мы</span>
+                <span class="word" onclick="clickWord(this, false)">идем</span>
+                <span class="word" onclick="clickWord(this, false)">на</span>
+                <span class="word error-target" onclick="clickWord(this, true)">выставка</span>.
+                <span class="correction-result" id="res-7"></span>
+            </div>
+            <div class="correction-area" id="area-7">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(7, this, true)">выставку</button>
+                    <button class="btn-option" onclick="selectCorrection(7, this, false)">выставке</button>
+                    <button class="btn-option" onclick="selectCorrection(7, this, false)">выставка</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 8: Meer (Sächlich -e -> bleibt -e) -->
+        <div class="error-card" id="card-8">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Они</span>
+                <span class="word" onclick="clickWord(this, false)">летят</span>
+                <span class="word" onclick="clickWord(this, false)">на</span>
+                <span class="word error-target" onclick="clickWord(this, true)">моря</span>.
+                <span class="correction-result" id="res-8"></span>
+            </div>
+            <div class="correction-area" id="area-8">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(8, this, true)">море</button>
+                    <button class="btn-option" onclick="selectCorrection(8, this, false)">морю</button>
+                    <button class="btn-option" onclick="selectCorrection(8, this, false)">моря</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 9: Zimmer (Weiblich -a -> -u) -->
+        <div class="error-card" id="card-9">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Кот</span>
+                <span class="word" onclick="clickWord(this, false)">бежит</span>
+                <span class="word" onclick="clickWord(this, false)">в</span>
+                <span class="word error-target" onclick="clickWord(this, true)">комнате</span>.
+                <span class="correction-result" id="res-9"></span>
+            </div>
+            <div class="correction-area" id="area-9">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(9, this, false)">комната</button>
+                    <button class="btn-option" onclick="selectCorrection(9, this, false)">комнате</button>
+                    <button class="btn-option" onclick="selectCorrection(9, this, true)">комнату</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satz 10: Geschäft (Männlich unbelebt -> bleibt gleich) -->
+        <div class="error-card" id="card-10">
+            <div class="sentence-display">
+                <span class="word" onclick="clickWord(this, false)">Я</span>
+                <span class="word" onclick="clickWord(this, false)">иду</span>
+                <span class="word" onclick="clickWord(this, false)">в</span>
+                <span class="word error-target" onclick="clickWord(this, true)">магазина</span>.
+                <span class="correction-result" id="res-10"></span>
+            </div>
+            <div class="correction-area" id="area-10">
+                <div class="correction-title">Wähle die richtige Form:</div>
+                <div class="correction-options">
+                    <button class="btn-option" onclick="selectCorrection(10, this, false)">магазина</button>
+                    <button class="btn-option" onclick="selectCorrection(10, this, true)">магазин</button>
+                    <button class="btn-option" onclick="selectCorrection(10, this, false)">магазине</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Lösung anzeigen</button>
+    </div>
+
+</div>
+
+<script>
+    // Schritt 1: Wort anklicken
+    function clickWord(element, isErrorTarget) {
+        const card = element.closest('.error-card');
+        
+        // Wenn bereits gelöst oder Fehler gefunden, Abbruch
+        if (card.classList.contains('solved') || card.querySelector('.correction-area').style.display === 'block') {
+            return; 
+        }
+
+        if (isErrorTarget) {
+            // Richtiges falsches Wort gefunden!
+            element.classList.add('selected-wrong');
+            
+            // Korrektur-Bereich anzeigen
+            const area = card.querySelector('.correction-area');
+            area.style.display = 'block';
+        } else {
+            // Falsches Wort angeklickt (kein Fehler)
+            element.classList.add('clicked-not-error');
+            setTimeout(() => {
+                element.classList.remove('clicked-not-error');
+            }, 500);
+        }
+    }
+
+    // Schritt 2: Korrektur auswählen
+    function selectCorrection(id, btn, isCorrect) {
+        const card = document.getElementById(`card-${id}`);
+        const resultSpan = document.getElementById(`res-${id}`);
+
+        // Alle Buttons deaktivieren
+        const buttons = card.querySelectorAll('.btn-option');
+        buttons.forEach(b => {
+            b.style.pointerEvents = 'none';
+            if (b !== btn) b.style.opacity = '0.5';
+        });
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            card.classList.add('solved');
+            
+            // Ergebnis im Satz anzeigen (optional)
+            resultSpan.textContent = "➔ " + btn.textContent;
+            resultSpan.style.display = "inline";
+        } else {
+            btn.classList.add('incorrect');
+        }
+    }
+
+    function resetAll() {
+        const cards = document.querySelectorAll('.error-card');
+        cards.forEach(card => {
+            card.classList.remove('solved');
+            
+            // Wörter zurücksetzen
+            const words = card.querySelectorAll('.word');
+            words.forEach(w => w.classList.remove('selected-wrong', 'clicked-not-error'));
+            
+            // Korrekturbereich verstecken
+            const area = card.querySelector('.correction-area');
+            area.style.display = 'none';
+            
+            // Ergebnis-Text entfernen
+            const res = card.querySelector('.correction-result');
+            res.style.display = 'none';
+            res.textContent = '';
+
+            // Buttons zurücksetzen
+            const buttons = card.querySelectorAll('.btn-option');
+            buttons.forEach(b => {
+                b.classList.remove('correct', 'incorrect');
+                b.style.pointerEvents = 'auto';
+                b.style.opacity = '1';
+            });
+        });
+    }
+
+    function showAllSolutions() {
+        // Zuerst alles zurücksetzen, um sauberen Status zu haben
+        resetAll();
+
+        const cards = document.querySelectorAll('.error-card');
+        cards.forEach(card => {
+            // 1. Markiere das Fehler-Wort
+            const errorWord = card.querySelector('.error-target');
+            if (errorWord) errorWord.classList.add('selected-wrong');
+
+            // 2. Zeige den Bereich
+            const area = card.querySelector('.correction-area');
+            area.style.display = 'block';
+
+            // 3. Wähle den richtigen Button (simuliere Klick oder setze Klasse)
+            const buttons = card.querySelectorAll('.btn-option');
+            let correctText = "";
+            buttons.forEach(btn => {
+                const clickAttr = btn.getAttribute('onclick');
+                if (clickAttr.includes('true')) {
+                    btn.classList.add('correct');
+                    correctText = btn.textContent;
+                }
+                btn.style.pointerEvents = 'none'; // Interaktion sperren
+            });
+
+            // 4. Setze "Gelöst" Status
+            card.classList.add('solved');
+            
+            // 5. Text einfügen
+            const res = card.querySelector('.correction-result');
+            res.textContent = "➔ " + correctText;
+            res.style.display = "inline";
+        });
+    }
+</script>
+
+</body>
+</html>
