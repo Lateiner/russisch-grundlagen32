@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: В oder НА? (15 Wörter)</title>
+    <!-- Polyfill für Drag & Drop auf Touch-Geräten -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --color-v: #2196F3;   /* Blau für В */
+            --color-na: #FF9800;  /* Orange für НА */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success: #4CAF50;
+            --error: #F44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+
+        .intro {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Bereich für die Wort-Quelle */
+        .source-area {
+            background-color: #e3f2fd;
+            border: 2px dashed #90caf9;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 100px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        /* Container für die Ziel-Boxen */
+        .drop-zones-wrapper {
+            display: flex;
+            gap: 20px;
+        }
+
+        .drop-zone {
+            flex: 1;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px; /* Etwas höher für mehr Wörter */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-width: 3px;
+            border-style: solid;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: background-color 0.3s;
+        }
+
+        /* Spezifische Styles für В und НА */
+        .zone-v {
+            border-color: var(--color-v);
+        }
+        .zone-v h2 {
+            color: var(--color-v);
+            margin-top: 0;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .zone-na {
+            border-color: var(--color-na);
+        }
+        .zone-na h2 {
+            color: var(--color-na);
+            margin-top: 0;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .zone-desc {
+            color: #777;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Die ziehbaren Wörter */
+        .draggable {
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            cursor: grab;
+            font-weight: 500;
+            font-size: 1.1rem;
+            user-select: none;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Feedback-Farben */
+        .draggable.correct {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .draggable.incorrect {
+            background-color: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        /* Steuerungsbuttons */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: opacity 0.2s;
+            min-width: 150px;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        .btn-check { background-color: var(--success); }
+        .btn-reset { background-color: #607D8B; }
+        .btn-solve { background-color: #FFC107; color: #333; }
+
+        .feedback-text {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+
+        /* Mobile Anpassung */
+        @media (max-width: 600px) {
+            .drop-zones-wrapper {
+                flex-direction: column;
+            }
+            .drop-zone {
+                min-height: 150px;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sortieren: В oder НА?</h1>
+    
+    <div class="intro">
+        <p>Ziehen Sie die Orte in den richtigen Container.</p>
+        <p style="font-size: 0.9em; color: #555;">(Die Wörter stehen im Nominativ)</p>
+    </div>
+
+    <!-- Quelle -->
+    <div class="source-area" id="source" ondragover="allowDrop(event)" ondrop="drop(event)">
+        <!-- Wörter für В (7 Wörter) -->
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w1" data-target="v">школа</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w2" data-target="v">парк</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w3" data-target="v">музей</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w4" data-target="v">магазин</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w5" data-target="v">театр</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w6" data-target="v">Россия</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w14" data-target="v">лес</div> <!-- NEU -->
+        
+        <!-- Wörter für НА (8 Wörter) -->
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w7" data-target="na">работа</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w8" data-target="na">почта</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w9" data-target="na">стадион</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w10" data-target="na">концерт</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w11" data-target="na">завод</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w12" data-target="na">вокзал</div>
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w13" data-target="na">улица</div> <!-- NEU -->
+        <div class="draggable" draggable="true" ondragstart="drag(event)" id="w15" data-target="na">выставка</div> <!-- NEU -->
+    </div>
+
+    <!-- Ziele -->
+    <div class="drop-zones-wrapper">
+        <!-- Container В -->
+        <div class="drop-zone zone-v" id="zone-v" data-type="v" ondragover="allowDrop(event)" ondrop="drop(event)">
+            <h2>В</h2>
+            <div class="zone-desc">Geschlossene Räume, Länder, Städte<br>(in/nach)</div>
+        </div>
+
+        <!-- Container НА -->
+        <div class="drop-zone zone-na" id="zone-na" data-type="na" ondragover="allowDrop(event)" ondrop="drop(event)">
+            <h2>НА</h2>
+            <div class="zone-desc">Offene Flächen, Veranstaltungen, Arbeit<br>(auf/zu/an)</div>
+        </div>
+    </div>
+
+    <div class="feedback-text" id="feedback"></div>
+
+    <div class="controls">
+        <button class="btn btn-check" onclick="checkAnswers()">Überprüfen</button>
+        <button class="btn btn-reset" onclick="resetTask()">Zurücksetzen</button>
+        <button class="btn btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /* --- Drag & Drop Funktionen --- */
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+        ev.target.style.opacity = "0.6";
+    }
+
+    document.addEventListener("dragend", function(event) {
+        event.target.style.opacity = "1";
+    });
+
+    function drop(ev) {
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        var draggedElement = document.getElementById(data);
+        
+        var targetZone = ev.target.closest('.drop-zone') || ev.target.closest('.source-area');
+
+        if (targetZone) {
+            targetZone.appendChild(draggedElement);
+            draggedElement.classList.remove('correct', 'incorrect');
+        }
+    }
+
+    /* --- Logik Funktionen --- */
+
+    function checkAnswers() {
+        const zoneV = document.getElementById('zone-v');
+        const zoneNa = document.getElementById('zone-na');
+        const source = document.getElementById('source');
+        
+        let allCorrect = true;
+        let placedItems = 0;
+
+        function validateZone(zone, expectedType) {
+            const items = zone.querySelectorAll('.draggable');
+            items.forEach(item => {
+                placedItems++;
+                if (item.dataset.target === expectedType) {
+                    item.classList.add('correct');
+                    item.classList.remove('incorrect');
+                } else {
+                    item.classList.add('incorrect');
+                    item.classList.remove('correct');
+                    allCorrect = false;
+                }
+            });
+        }
+
+        validateZone(zoneV, 'v');
+        validateZone(zoneNa, 'na');
+
+        if (source.children.length > 0) {
+            document.getElementById('feedback').textContent = "Bitte ordnen Sie alle Wörter zu.";
+            document.getElementById('feedback').style.color = "orange";
+        } else if (allCorrect && placedItems > 0) {
+            document.getElementById('feedback').textContent = "Perfekt! Alles richtig sortiert.";
+            document.getElementById('feedback').style.color = "var(--success)";
+        } else {
+            document.getElementById('feedback').textContent = "Einige Zuordnungen sind falsch (rot).";
+            document.getElementById('feedback').style.color = "var(--error)";
+        }
+    }
+
+    function resetTask() {
+        const source = document.getElementById('source');
+        const items = document.querySelectorAll('.draggable');
+        
+        // Wörter sortiert zurücklegen (w1, w2, w3...)
+        const itemsArray = Array.from(items).sort((a, b) => {
+            const idA = parseInt(a.id.substring(1));
+            const idB = parseInt(b.id.substring(1));
+            return idA - idB;
+        });
+
+        itemsArray.forEach(item => {
+            source.appendChild(item);
+            item.classList.remove('correct', 'incorrect');
+        });
+
+        document.getElementById('feedback').textContent = "";
+    }
+
+    function showSolution() {
+        const zoneV = document.getElementById('zone-v');
+        const zoneNa = document.getElementById('zone-na');
+        const items = document.querySelectorAll('.draggable');
+
+        items.forEach(item => {
+            item.classList.remove('incorrect');
+            item.classList.add('correct');
+            
+            if (item.dataset.target === 'v') {
+                zoneV.appendChild(item);
+            } else {
+                zoneNa.appendChild(item);
+            }
+        });
+
+        document.getElementById('feedback').textContent = "Hier ist die Lösung.";
+        document.getElementById('feedback').style.color = "#333";
+    }
+</script>
+
+</body>
+</html>
