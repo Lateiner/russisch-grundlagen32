@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Memory: Wohin?</title>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --bg-color: #f4f7f6;
+            --card-back: #3f51b5;
+            --card-face: #ffffff;
+            --text-color: #333;
+            --success-color: #4CAF50;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #444;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .intro {
+            background-color: #fff;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        /* Das Spielfeld Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Desktop: 4 Spalten */
+            gap: 15px;
+            max-width: 800px;
+            width: 100%;
+            perspective: 1000px; /* Für den 3D Flip Effekt */
+        }
+
+        /* Die einzelne Karte */
+        .memory-card {
+            background-color: transparent;
+            height: 120px; /* Feste Höhe */
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            border-radius: var(--border-radius);
+            /* Damit man Text nicht markiert beim schnellen Klicken */
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .memory-card.flip {
+            transform: rotateY(180deg);
+        }
+
+        /* Vorder- und Rückseite */
+        .front-face, .back-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backface-visibility: hidden; /* Wichtig: Versteckt die Rückseite beim Drehen */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Rückseite (Blaues Muster) */
+        .back-face {
+            background-color: var(--card-back);
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+            );
+        }
+        
+        /* Fragezeichen auf der Rückseite */
+        .back-face::after {
+            content: "?";
+            font-size: 3rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: bold;
+        }
+
+        /* Vorderseite (Text) */
+        .front-face {
+            background-color: var(--card-face);
+            color: var(--text-color);
+            transform: rotateY(180deg); /* Startet gedreht */
+            border: 2px solid #ddd;
+        }
+
+        .card-text-main {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card-text-sub {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        /* Wenn gefunden */
+        .memory-card.matched .front-face {
+            background-color: #e8f5e9;
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        /* Overlay wenn gewonnen */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100;
+            color: white;
+            text-align: center;
+        }
+        .overlay.visible { display: flex; animation: fadeIn 0.5s; }
+
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Responsive */
+        @media (max-width: 650px) {
+            .game-grid {
+                grid-template-columns: repeat(3, 1fr); /* Tablet/Large Phone: 3 Spalten */
+                gap: 10px;
+            }
+            .memory-card { height: 100px; }
+            .card-text-main { font-size: 0.9rem; }
+        }
+
+        @media (max-width: 450px) {
+            .game-grid {
+                grid-template-columns: repeat(3, 1fr); /* Kleine Phones: immer noch 3, aber enger */
+                gap: 8px;
+            }
+            .memory-card { height: 90px; }
+            .front-face { padding: 5px; }
+            .card-text-sub { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Memory: Wohin?</h1>
+
+    <div class="intro">
+        <p>Finden Sie die Paare: <br><strong>Ort (Deutsch)</strong> – <strong>Richtung (Russisch)</strong>.</p>
+        <p style="font-size:0.9rem; color:#666;">Achtung bei "nach Hause"!</p>
+    </div>
+
+    <div class="stats-bar">
+        <span>Versuche: <span id="flips">0</span></span>
+        <span>Gefunden: <span id="matches">0</span> / 8</span>
+    </div>
+
+    <div class="game-grid" id="game-board">
+        <!-- Karten werden per JS generiert -->
+    </div>
+
+    <!-- Gewonnen Overlay -->
+    <div class="overlay" id="overlay">
+        <h2 style="font-size: 3rem; margin-bottom: 10px;">Geschafft!</h2>
+        <p style="font-size: 1.5rem;">Alle Paare gefunden.</p>
+        <button class="btn-restart" onclick="restartGame()">Neustart ↺</button>
+    </div>
+
+<script>
+    /*
+     * KARTEN-PAARE
+     * 'pairId': Eindeutige ID für das Paar.
+     * 'a': Karte A (z.B. Deutsch / Nominativ).
+     * 'b': Karte B (z.B. Russisch Akkusativ).
+     */
+    const cardsData = [
+        { pairId: 1, a: { main: "Haus", sub: "(nach Hause)" }, b: { main: "домой", sub: "" } },
+        { pairId: 2, a: { main: "Schule", sub: "(in die)" }, b: { main: "в школу", sub: "" } },
+        { pairId: 3, a: { main: "Arbeit", sub: "(zur)" }, b: { main: "на работу", sub: "" } },
+        { pairId: 4, a: { main: "Park", sub: "(in den)" }, b: { main: "в парк", sub: "" } },
+        { pairId: 5, a: { main: "Post", sub: "(zur)" }, b: { main: "на почту", sub: "" } },
+        { pairId: 6, a: { main: "Museum", sub: "(ins)" }, b: { main: "в музей", sub: "" } },
+        { pairId: 7, a: { main: "Stadion", sub: "(ins)" }, b: { main: "на стадион", sub: "" } },
+        { pairId: 8, a: { main: "Russland", sub: "(nach)" }, b: { main: "в Россию", sub: "" } }
+    ];
+
+    let hasFlippedCard = false;
+    let lockBoard = false; // Verhindert Klicks während Animation
+    let firstCard, secondCard;
+    let matchesFound = 0;
+    let flips = 0;
+
+    const gameBoard = document.getElementById('game-board');
+    const flipsDisplay = document.getElementById('flips');
+    const matchesDisplay = document.getElementById('matches');
+    const overlay = document.getElementById('overlay');
+
+    // Spiel initialisieren
+    function initGame() {
+        matchesFound = 0;
+        flips = 0;
+        hasFlippedCard = false;
+        lockBoard = false;
+        firstCard = null;
+        secondCard = null;
+        
+        updateStats();
+        overlay.classList.remove('visible');
+        gameBoard.innerHTML = '';
+
+        // Deck erstellen: Für jedes Daten-Paar zwei Karten-Objekte erzeugen
+        let deck = [];
+        
+        cardsData.forEach(pair => {
+            // Karte 1 (Deutsch)
+            deck.push({
+                id: pair.pairId,
+                content: pair.a,
+                type: 'de'
+            });
+            // Karte 2 (Russisch)
+            deck.push({
+                id: pair.pairId,
+                content: pair.b,
+                type: 'ru'
+            });
+        });
+
+        // Mischen
+        deck.sort(() => 0.5 - Math.random());
+
+        // HTML rendern
+        deck.forEach(cardData => {
+            const cardEl = document.createElement('div');
+            cardEl.classList.add('memory-card');
+            cardEl.dataset.pairId = cardData.id;
+
+            cardEl.innerHTML = `
+                <div class="front-face">
+                    <div class="card-text-main">${cardData.content.main}</div>
+                    <div class="card-text-sub">${cardData.content.sub}</div>
+                </div>
+                <div class="back-face"></div>
+            `;
+
+            cardEl.addEventListener('click', flipCard);
+            gameBoard.appendChild(cardEl);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this === firstCard) return; // Doppelklick auf gleiche Karte verhindern
+
+        this.classList.add('flip');
+
+        if (!hasFlippedCard) {
+            // Erster Klick
+            hasFlippedCard = true;
+            firstCard = this;
+            return;
+        }
+
+        // Zweiter Klick
+        secondCard = this;
+        checkForMatch();
+    }
+
+    function checkForMatch() {
+        flips++;
+        updateStats();
+
+        // Prüfen ob die pair-ids übereinstimmen
+        let isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
+
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        // Event-Listener entfernen (oder logisch sperren)
+        firstCard.removeEventListener('click', flipCard);
+        secondCard.removeEventListener('click', flipCard);
+        
+        // Visuelles Feedback
+        firstCard.classList.add('matched');
+        secondCard.classList.add('matched');
+
+        matchesFound++;
+        updateStats();
+        
+        resetBoard();
+
+        // Spielende prüfen
+        if (matchesFound === cardsData.length) {
+            setTimeout(() => {
+                overlay.classList.add('visible');
+            }, 500);
+        }
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+
+        setTimeout(() => {
+            firstCard.classList.remove('flip');
+            secondCard.classList.remove('flip');
+            resetBoard();
+        }, 1000); // Zeit zum Merken
+    }
+
+    function resetBoard() {
+        [hasFlippedCard, lockBoard] = [false, false];
+        [firstCard, secondCard] = [null, null];
+    }
+
+    function updateStats() {
+        flipsDisplay.textContent = flips;
+        matchesDisplay.textContent = matchesFound;
+    }
+
+    function restartGame() {
+        initGame();
+    }
+
+    // Start beim Laden
+    initGame();
+
+</script>
+
+</body>
+</html>
