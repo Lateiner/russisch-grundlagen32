@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Übersetzen (Satzbau)</title>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* Aufgaben-Container */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .task-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        /* Deutscher Satz */
+        .german-sentence {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 15px;
+            font-weight: bold;
+            border-left: 4px solid #607d8b;
+            padding-left: 10px;
+        }
+
+        /* Antwortbereich (Wo die Wörter landen) */
+        .answer-zone {
+            min-height: 50px;
+            background-color: #f9f9f9;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .answer-zone.correct {
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+        }
+
+        .answer-zone.incorrect {
+            border-color: var(--error-color);
+            background-color: #ffebee;
+        }
+
+        /* Wort-Pool (Verfügbare Wörter) */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        /* Das Wort-Button Design */
+        .word-btn {
+            background-color: #fff;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+            transition: all 0.1s;
+        }
+
+        .word-btn:hover {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .word-btn:active {
+            transform: translateY(2px);
+        }
+
+        /* Einzel-Check Button pro Karte */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .btn-check-single {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-check-single:hover {
+            background-color: #303f9f;
+        }
+
+        /* Status Text */
+        .status-msg {
+            font-weight: bold;
+            font-size: 0.9rem;
+            min-height: 1.5em;
+        }
+        .text-correct { color: var(--success-color); }
+        .text-error { color: var(--error-color); }
+
+        /* Globale Controls unten */
+        .global-controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            min-width: 150px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: opacity 0.2s;
+        }
+
+        .ctrl-btn:hover { opacity: 0.9; }
+
+        .btn-reset { background-color: #607D8B; }
+        .btn-solve { background-color: #FF9800; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .card-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .btn-check-single {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Übersetzung DE ➔ RU</h1>
+    
+    <div class="intro">
+        <p>Bauen Sie den russischen Satz.<br>
+        Klicken Sie danach bei jeder Aufgabe auf <strong>„Überprüfen“</strong>.</p>
+    </div>
+
+    <div class="task-list" id="task-container">
+        <!-- Aufgaben werden per JS generiert -->
+    </div>
+
+    <div class="global-controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Alle zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Alle Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /* 
+     * DATEN: 8 Sätze
+     */
+    const tasks = [
+        {
+            id: 1,
+            german: "Fährst du im Sommer nach Russland?",
+            correct: ["Ты", "едешь", "летом", "в", "Россию?"],
+            distractors: ["России?", "на", "Россия", "едет"]
+        },
+        {
+            id: 2,
+            german: "Wir gehen heute Abend ins Theater.",
+            correct: ["Мы", "идем", "сегодня", "вечером", "в", "театр."],
+            distractors: ["театре.", "на", "театра", "ходите"]
+        },
+        {
+            id: 3,
+            german: "Er stellt die Lampe auf den Tisch.",
+            correct: ["Он", "ставит", "лампу", "на", "стол."],
+            distractors: ["лампа", "столе.", "в", "лампе"]
+        },
+        {
+            id: 4,
+            german: "Gehen sie (Pl.) zur Arbeit?",
+            correct: ["Они", "идут", "на", "работу?"],
+            distractors: ["работе?", "в", "работа?", "едут"]
+        },
+        {
+            id: 5,
+            german: "Ich fahre bald ans Meer.",
+            correct: ["Я", "скоро", "поеду", "на", "море."],
+            distractors: ["в", "моря.", "морю.", "еду"]
+        },
+        {
+            id: 6,
+            german: "Die Kinder gehen in die Schule.",
+            correct: ["Дети", "идут", "в", "школу."],
+            distractors: ["школе.", "на", "школа.", "едут"]
+        },
+        {
+            id: 7,
+            german: "Gehst du heute auf die Ausstellung?",
+            correct: ["Ты", "идешь", "сегодня", "на", "выставку?"],
+            distractors: ["выставке?", "в", "выставка?", "идет"]
+        },
+        {
+            id: 8,
+            german: "Wann fährst du nach Hause?",
+            correct: ["Когда", "ты", "едешь", "домой?"],
+            distractors: ["дома?", "в", "дом?", "идешь"]
+        }
+    ];
+
+    // Initialisierung
+    document.addEventListener('DOMContentLoaded', () => {
+        renderTasks();
+    });
+
+    function renderTasks() {
+        const container = document.getElementById('task-container');
+        container.innerHTML = '';
+
+        tasks.forEach(task => {
+            // HTML Struktur erstellen
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${task.id}`;
+
+            // Wortpool mischen (Richtige + Distraktoren)
+            const allWords = [...task.correct, ...task.distractors].sort(() => Math.random() - 0.5);
+
+            let poolHTML = '';
+            allWords.forEach(word => {
+                poolHTML += `<div class="word-btn" onclick="moveWord(this)">${word}</div>`;
+            });
+
+            // Card Layout mit eigenem Button
+            card.innerHTML = `
+                <div class="german-sentence">${task.german}</div>
+                <div class="answer-zone" id="zone-${task.id}"></div>
+                <div class="word-pool" id="pool-${task.id}">
+                    ${poolHTML}
+                </div>
+                <div class="card-footer">
+                    <div class="status-msg" id="status-${task.id}"></div>
+                    <button class="btn-check-single" onclick="checkSingleTask(${task.id})">Überprüfen</button>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+    }
+
+    // Funktion zum Verschieben der Wörter
+    window.moveWord = function(element) {
+        const parentId = element.parentElement.id;
+        const card = element.closest('.task-card');
+        const taskId = card.id.split('-')[1];
+        
+        const zone = document.getElementById(`zone-${taskId}`);
+        const pool = document.getElementById(`pool-${taskId}`);
+        const status = document.getElementById(`status-${taskId}`);
+
+        // Feedback zurücksetzen bei Änderung
+        zone.classList.remove('correct', 'incorrect');
+        status.textContent = "";
+
+        if (parentId.includes('pool')) {
+            // Vom Pool in die Antwortzone verschieben
+            zone.appendChild(element);
+        } else {
+            // Von der Antwortzone zurück in den Pool verschieben
+            pool.appendChild(element);
+        }
+    };
+
+    // Prüft EINE einzelne Aufgabe
+    window.checkSingleTask = function(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        const zone = document.getElementById(`zone-${taskId}`);
+        const status = document.getElementById(`status-${taskId}`);
+        
+        // Sammle die Wörter in der Antwortzone
+        const userWords = Array.from(zone.children).map(btn => btn.textContent);
+        
+        // Logik: Array Vergleich
+        const isCorrect = JSON.stringify(userWords) === JSON.stringify(task.correct);
+
+        if (isCorrect) {
+            zone.classList.remove('incorrect');
+            zone.classList.add('correct');
+            status.textContent = "✔ Richtig!";
+            status.className = "status-msg text-correct";
+        } else {
+            zone.classList.remove('correct');
+            zone.classList.add('incorrect');
+            if (userWords.length === 0) {
+                status.textContent = "Bitte Wörter auswählen.";
+            } else {
+                status.textContent = "✖ Leider falsch.";
+            }
+            status.className = "status-msg text-error";
+        }
+    };
+
+    function resetAll() {
+        renderTasks();
+    }
+
+    function showAllSolutions() {
+        tasks.forEach(task => {
+            const zone = document.getElementById(`zone-${task.id}`);
+            const pool = document.getElementById(`pool-${task.id}`);
+            const status = document.getElementById(`status-${task.id}`);
+            
+            // Alles leeren
+            zone.innerHTML = '';
+            pool.innerHTML = '';
+
+            // Nur korrekte Wörter einfügen
+            task.correct.forEach(word => {
+                const btn = document.createElement('div');
+                btn.className = 'word-btn';
+                btn.textContent = word;
+                zone.appendChild(btn);
+            });
+
+            zone.classList.remove('incorrect');
+            zone.classList.add('correct');
+            status.textContent = "Lösung:";
+            status.className = "status-msg";
+        });
+    }
+
+</script>
+
+</body>
+</html>
