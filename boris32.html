@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Boris – ein Tag in seinem Leben</title>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --line-height: 2.4; /* Genügend Platz für die Dropdowns */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        /* Der Text-Container */
+        .story-card {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            font-size: 1.2rem;
+            position: relative;
+        }
+
+        /* Russischer Text */
+        .story-text {
+            line-height: var(--line-height);
+        }
+
+        /* Dropdowns im Fließtext */
+        select.inline-select {
+            appearance: none;
+            background-color: #f0f2f5;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            padding: 5px 15px 5px 10px;
+            font-size: 1.05rem;
+            font-family: inherit;
+            color: #333;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 0 5px;
+            transition: all 0.2s;
+            /* Pfeil-Icon */
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px top 50%;
+            background-size: 10px auto;
+            padding-right: 25px;
+        }
+
+        select.inline-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+        }
+
+        /* Feedback Farben für Selects */
+        select.inline-select.correct {
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        select.inline-select.incorrect {
+            border-color: var(--error-color);
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            min-width: 150px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        button:active { transform: translateY(2px); }
+
+        .btn-reset { background-color: #607D8B; }
+        .btn-solve { background-color: #FF9800; }
+
+        /* Mobile Anpassung */
+        @media (max-width: 600px) {
+            .story-card { padding: 20px; font-size: 1.1rem; }
+            select.inline-select { margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Boris – ein Tag in seinem Leben</h1>
+    
+    <div class="intro">
+        <p>Lesen Sie den Text und wählen Sie die richtige Form aus (Präposition + Akkusativ).</p>
+    </div>
+
+    <div class="story-card">
+        <div class="story-text">
+            Привет! Меня зовут Борис.
+            <br>
+            Утром я еду
+            <select class="inline-select" data-correct="на работу" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в работу">в работу</option>
+                <option value="на работу">на работу</option>
+                <option value="на работа">на работа</option>
+            </select>
+            . Я работаю в офисе.
+            <br>
+            Днем мы с коллегами идем
+            <select class="inline-select" data-correct="в ресторан" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в ресторан">в ресторан</option>
+                <option value="на ресторан">на ресторан</option>
+                <option value="в ресторане">в ресторане</option>
+            </select>
+            на обед.
+            <br>
+            Вечером я еду
+            <select class="inline-select" data-correct="в спортзал" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="на спортзал">на спортзал</option>
+                <option value="в спортзал">в спортзал</option>
+                <option value="в спортзалу">в спортзалу</option>
+            </select>
+            . Я люблю спорт.
+            <br>
+            Потом я иду
+            <select class="inline-select" data-correct="в магазин" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в магазин">в магазин</option>
+                <option value="в магазина">в магазина</option>
+                <option value="на магазин">на магазин</option>
+            </select>
+            за продуктами.
+            <br>
+            Поздно вечером я наконец еду
+            <select class="inline-select" data-correct="домой" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в дом">в дом</option>
+                <option value="дома">дома</option>
+                <option value="домой">домой</option>
+            </select>
+            .
+            <br><br>
+            <!-- ZUSÄTZLICHE AUFGABEN -->
+            Но в субботу я не работаю. В субботу я иду гулять
+            <select class="inline-select" data-correct="в парк" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в парк">в парк</option>
+                <option value="на парк">на парк</option>
+                <option value="в парке">в парке</option>
+            </select>
+            .
+            <br>
+            А в воскресенье мы с друзьями идем
+            <select class="inline-select" data-correct="на выставку" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в выставку">в выставку</option>
+                <option value="на выставку">на выставку</option>
+                <option value="на выставке">на выставке</option>
+            </select>
+            .
+            <br>
+            Летом у меня отпуск! Я поеду отдыхать
+            <select class="inline-select" data-correct="на море" onchange="checkSingleAnswer(this)">
+                <option value="">...</option>
+                <option value="в море">в море</option>
+                <option value="на море">на море</option>
+                <option value="на моря">на моря</option>
+            </select>
+            !
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetTask()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Funktion für sofortiges Feedback
+    function checkSingleAnswer(selectElement) {
+        const selectedValue = selectElement.value;
+        const correctValue = selectElement.dataset.correct;
+
+        // Klassen entfernen
+        selectElement.classList.remove('correct', 'incorrect');
+
+        if (selectedValue === "") {
+            // Wenn nichts ausgewählt ist, keine Farbe
+            return;
+        }
+
+        if (selectedValue === correctValue) {
+            selectElement.classList.add('correct');
+        } else {
+            selectElement.classList.add('incorrect');
+        }
+    }
+
+    function resetTask() {
+        const selects = document.querySelectorAll('.inline-select');
+        selects.forEach(select => {
+            select.value = "";
+            select.classList.remove('correct', 'incorrect');
+        });
+    }
+
+    function showSolution() {
+        const selects = document.querySelectorAll('.inline-select');
+        selects.forEach(select => {
+            select.value = select.dataset.correct;
+            select.classList.remove('incorrect');
+            select.classList.add('correct');
+        });
+    }
+</script>
+
+</body>
+</html>
