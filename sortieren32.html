@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Wo oder Wohin? (Erweitert)</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-color: #2196F3; /* Blau für Wo/Ort */
+            --secondary-color: #FF9800; /* Orange für Wohin/Richtung */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid #607D8B;
+        }
+
+        /* Aufgaben-Container */
+        .task-wrapper {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Drag & Drop Bereiche */
+        .source-container {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 2px dashed #90caf9;
+        }
+
+        .target-wrapper {
+            display: flex;
+            gap: 20px;
+        }
+
+        .drop-zone {
+            flex: 1;
+            background-color: #f9f9f9;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .drop-zone h3 {
+            margin: 0 0 15px 0;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .drop-zone.wo {
+            border-color: var(--primary-color);
+        }
+        .drop-zone.wo h3 { color: var(--primary-color); }
+
+        .drop-zone.wohin {
+            border-color: var(--secondary-color);
+        }
+        .drop-zone.wohin h3 { color: var(--secondary-color); }
+
+        /* Draggable Items */
+        .draggable {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: grab;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+            font-weight: 500;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.1s;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.02);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        }
+
+        .draggable span {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            font-weight: normal;
+        }
+
+        /* Feedback Farben */
+        .draggable.correct {
+            border: 2px solid var(--success-color);
+            background-color: #e8f5e9;
+        }
+
+        .draggable.incorrect {
+            border: 2px solid var(--error-color);
+            background-color: #ffebee;
+        }
+
+        /* Buttons */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: white;
+            flex: 1;
+            min-width: 120px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-check { background-color: var(--success-color); }
+        .btn-reset { background-color: #78909c; }
+        .btn-solve { background-color: #ffb74d; color: #333; }
+
+        .feedback-text {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+
+        @media (max-width: 650px) {
+            .target-wrapper {
+                flex-direction: column;
+            }
+            .drop-zone {
+                min-height: 120px;
+            }
+            button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik: Wo vs. Wohin?</h1>
+    
+    <div class="intro">
+        <p><strong>Die Regel:</strong></p>
+        <ul style="margin: 0; padding-left: 20px;">
+            <li>Frage <strong>Где? (Wo?)</strong> &rarr; Zustand/Ort (Präpositiv)</li>
+            <li>Frage <strong>Куда? (Wohin?)</strong> &rarr; Bewegung/Richtung (Akkusativ)</li>
+        </ul>
+    </div>
+
+    <!-- AUFGABE 1: VERBEN (Bereits 4 Paare) -->
+    <div class="task-wrapper" id="task1">
+        <h2>Aufgabe 1: Verben sortieren</h2>
+        <p>Ziehen Sie die Verben in die richtige Spalte.</p>
+
+        <div class="source-container" id="source1" ondragover="allowDrop(event)" ondrop="drop(event)">
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v1" data-type="wo">
+                стоять <span>(stehen)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v2" data-type="wohin">
+                идти <span>(gehen)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v3" data-type="wo">
+                жить <span>(wohnen)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v4" data-type="wohin">
+                ехать <span>(fahren)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v5" data-type="wohin">
+                ставить <span>(stellen)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v6" data-type="wo">
+                быть <span>(sein)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v7" data-type="wo">
+                лежать <span>(liegen)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="v8" data-type="wohin">
+                класть <span>(legen)</span>
+            </div>
+        </div>
+
+        <div class="target-wrapper">
+            <div class="drop-zone wo" id="zone1-wo" data-target="wo" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3>Где? (Wo?)</h3>
+            </div>
+            <div class="drop-zone wohin" id="zone1-wohin" data-target="wohin" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3>Куда? (Wohin?)</h3>
+            </div>
+        </div>
+
+        <div class="feedback-text" id="feedback1"></div>
+        <div class="controls">
+            <button class="btn-check" onclick="checkTask('task1')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetTask('task1')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveTask('task1')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- AUFGABE 2: SÄTZE (Jetzt erweitert auf 4 Paare) -->
+    <div class="task-wrapper" id="task2">
+        <h2>Aufgabe 2: Fragen zuordnen (Erweitert)</h2>
+        <p>Entscheiden Sie: Passt die Frage "Где?" (Wo?) oder "Куда?" (Wohin?)?</p>
+
+        <div class="source-container" id="source2" ondragover="allowDrop(event)" ondrop="drop(event)">
+            <!-- Paar 1: Park -->
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s1" data-type="wo">
+                Я в парке. <span>(Ich bin im Park.)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s2" data-type="wohin">
+                Я иду в парк. <span>(Ich gehe in den Park.)</span>
+            </div>
+            <!-- Paar 2: Zu Hause -->
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s3" data-type="wo">
+                Мы дома. <span>(Wir sind zu Hause.)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s4" data-type="wohin">
+                Мы идем домой. <span>(Wir gehen nach Hause.)</span>
+            </div>
+            <!-- Paar 3: Tisch -->
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s5" data-type="wohin">
+                Он ставит вазу на стол. <span>(Er stellt Vase auf Tisch.)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s6" data-type="wo">
+                Ваза стоит на столе. <span>(Vase steht auf Tisch.)</span>
+            </div>
+            <!-- NEUES Paar 4: Arbeit -->
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s7" data-type="wo">
+                Анна на работе. <span>(Anna ist auf der Arbeit.)</span>
+            </div>
+            <div class="draggable" draggable="true" ondragstart="drag(event)" id="s8" data-type="wohin">
+                Анна едет на работу. <span>(Anna fährt zur Arbeit.)</span>
+            </div>
+        </div>
+
+        <div class="target-wrapper">
+            <div class="drop-zone wo" id="zone2-wo" data-target="wo" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3>Где? (Wo?)</h3>
+            </div>
+            <div class="drop-zone wohin" id="zone2-wohin" data-target="wohin" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h3>Куда? (Wohin?)</h3>
+            </div>
+        </div>
+
+        <div class="feedback-text" id="feedback2"></div>
+        <div class="controls">
+            <button class="btn-check" onclick="checkTask('task2')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetTask('task2')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveTask('task2')">Lösung anzeigen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* --- Drag & Drop Logik --- */
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+        ev.target.style.opacity = "0.6";
+    }
+
+    document.addEventListener("dragend", function(event) {
+        event.target.style.opacity = "1";
+    });
+
+    function drop(ev) {
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        var draggedElement = document.getElementById(data);
+        var targetZone = ev.target.closest('.drop-zone') || ev.target.closest('.source-container');
+
+        if (targetZone) {
+            targetZone.appendChild(draggedElement);
+            draggedElement.classList.remove('correct', 'incorrect');
+        }
+    }
+
+    /* --- Interaktivitäts-Funktionen --- */
+    function checkTask(taskId) {
+        const container = document.getElementById(taskId);
+        const dropZones = container.querySelectorAll('.drop-zone');
+        const sourceContainer = container.querySelector('.source-container');
+        let allCorrect = true;
+
+        if (sourceContainer.children.length > 0) {
+            setFeedback(taskId, "Bitte ordnen Sie erst alle Elemente zu.", "orange");
+            return;
+        }
+
+        dropZones.forEach(zone => {
+            const targetType = zone.getAttribute('data-target');
+            const items = zone.querySelectorAll('.draggable');
+            items.forEach(item => {
+                const itemType = item.getAttribute('data-type');
+                if (itemType === targetType) {
+                    item.classList.add('correct');
+                    item.classList.remove('incorrect');
+                } else {
+                    item.classList.add('incorrect');
+                    item.classList.remove('correct');
+                    allCorrect = false;
+                }
+            });
+        });
+
+        if (allCorrect) {
+            setFeedback(taskId, "Super! Alles richtig zugeordnet.", "green");
+        } else {
+            setFeedback(taskId, "Einige Elemente sind falsch.", "red");
+        }
+    }
+
+    function resetTask(taskId) {
+        const container = document.getElementById(taskId);
+        const source = container.querySelector('.source-container');
+        const items = container.querySelectorAll('.draggable');
+        const itemsArray = Array.from(items);
+        itemsArray.sort((a, b) => a.id.localeCompare(b.id));
+
+        itemsArray.forEach(item => {
+            source.appendChild(item);
+            item.classList.remove('correct', 'incorrect');
+        });
+        setFeedback(taskId, "", "black");
+    }
+
+    function solveTask(taskId) {
+        const container = document.getElementById(taskId);
+        const items = container.querySelectorAll('.draggable');
+        items.forEach(item => {
+            const type = item.getAttribute('data-type');
+            const correctZone = container.querySelector(`.drop-zone[data-target="${type}"]`);
+            if (correctZone) {
+                correctZone.appendChild(item);
+                item.classList.remove('incorrect');
+                item.classList.add('correct');
+            }
+        });
+        setFeedback(taskId, "Lösung angezeigt.", "blue");
+    }
+
+    function setFeedback(taskId, message, color) {
+        const feedbackEl = document.getElementById(taskId.replace('task', 'feedback'));
+        if (feedbackEl) {
+            feedbackEl.textContent = message;
+            feedbackEl.style.color = color === "green" ? "var(--success-color)" : (color === "red" ? "var(--error-color)" : color);
+        }
+    }
+</script>
+
+</body>
+</html>
